@@ -33,7 +33,7 @@ public class User implements Serializable {
     @Column
     private String password;
 
-    /*esta anotacion sirve para que el GRUD ignore hacer
+    /*esta anotacion sirve para que el CRUD ignore hacer
     * cualquier operacion con esta variable.
     * en otras palabras no se va a guardar en la BD
     * se suele usar para omitir valores en la base de datos
