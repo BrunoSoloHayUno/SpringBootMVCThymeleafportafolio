@@ -6,7 +6,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -23,14 +27,24 @@ public class User implements Serializable {
     private Long id;
 
     @Column
+    @NotBlank
+    @Size(min=5,max=8,message="No se cumple las reglas del tamaño")
     private String firstName;
+
     @Column
+    @NotBlank
     private String lastName;
+
     @Column(unique = true)
+    @NotBlank @Email
     private String email;
+
     @Column(unique = true)
+    @NotBlank
     private String username;
+
     @Column
+    @NotBlank
     private String password;
 
     /*esta anotacion sirve para que el CRUD ignore hacer
@@ -39,9 +53,11 @@ public class User implements Serializable {
     * se suele usar para omitir valores en la base de datos
     * que solo nesesitamos para campos especificos.*/
     @Transient
+    @NotBlank
     private String confirmPassword;
 
     /*Busca el id del objeto "Role" y lo asigna como clave foránea*/
+    @Size(min=1)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
     joinColumns = @JoinColumn(name = "user_id"),
