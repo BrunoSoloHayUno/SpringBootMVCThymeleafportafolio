@@ -53,7 +53,6 @@ public class User implements Serializable {
     * se suele usar para omitir valores en la base de datos
     * que solo nesesitamos para campos especificos.*/
     @Transient
-    @NotBlank
     private String confirmPassword;
 
     /*Busca el id del objeto "Role" y lo asigna como clave foránea*/

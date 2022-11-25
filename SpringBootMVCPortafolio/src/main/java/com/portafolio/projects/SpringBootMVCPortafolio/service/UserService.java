@@ -6,8 +6,11 @@ import org.springframework.stereotype.Service;
 @Service
 public interface UserService {
 
-    public Iterable<User> getAllUsers();
+     Iterable<User> getAllUsers();
 
-    public User createUser(User user) throws Exception;
+     User createUser(User user) throws Exception;
 
+     User getUserById(Long id) throws Exception;
+
+    User updateUser(User user) throws Exception;
 }
