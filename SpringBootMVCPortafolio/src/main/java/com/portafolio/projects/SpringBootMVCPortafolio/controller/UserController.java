@@ -4,6 +4,7 @@ import ch.qos.logback.core.encoder.EchoEncoder;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.RoleRepository;
 import com.portafolio.projects.SpringBootMVCPortafolio.service.UserService;
+import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,6 +59,16 @@ public class UserController {
     @GetMapping("/userForm/cancel")
     public String cancelEditUser(ModelMap model){
         return "redirect:/userForm";
+    }
+
+    @GetMapping("deleteUser/{id}")
+    public String deleteUser(Model model, @PathVariable(name = "id")Long id){
+        try{
+            userService.deleteUser(id);
+        }catch(Exception e){
+            model.addAttribute("listErrorMessage", e.getMessage());
+        }
+        return getUserForm(model);
     }
 
     @PostMapping("/editUser")
