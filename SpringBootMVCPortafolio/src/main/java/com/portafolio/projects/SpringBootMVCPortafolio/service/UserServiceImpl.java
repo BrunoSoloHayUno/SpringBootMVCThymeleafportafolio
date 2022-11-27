@@ -1,5 +1,6 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.service;
 
+import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,30 @@ public class UserServiceImpl implements UserService{
                 .orElseThrow(() -> new Exception("Usuario no encontrado -"+this.getClass().getName()));
 
         userRepository.delete(user);
+    }
+
+    @Override
+    public User changePassword(ChangePasswordForm form) throws Exception {
+        User storedUser = userRepository
+                .findById(form.getId())
+                .orElseThrow(() -> new Exception("Usuario no encontrado en ChangePassword -"
+                        +this.getClass().getName()));
+
+
+        if(!form.getCurrentPassword().equals(storedUser.getPassword())) {
+            throw new Exception("Contraseña actual incorrecta.");
+        }
+
+        if (form.getCurrentPassword().equals(form.getNewPassword())) {
+            throw new Exception("La nueva contraseña debe ser diferente a la actual!");
+        }
+
+        if(!form.getNewPassword().equals(form.getConfirmPassword())) {
+            throw new Exception("La nueva contraseña y la contraseña actual no coinciden!");
+        }
+
+        storedUser.setPassword(form.getNewPassword());
+        return userRepository.save(storedUser);
     }
 
     /**

@@ -1,21 +1,22 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.controller;
 
 import ch.qos.logback.core.encoder.EchoEncoder;
+import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.RoleRepository;
 import com.portafolio.projects.SpringBootMVCPortafolio.service.UserService;
 import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -52,7 +53,8 @@ public class UserController {
         //Activa el tab del formulario.
         model.addAttribute("editMode", true);
 
-        //Mira siguiente sección para más información.
+
+        model.addAttribute("passwordForm", new ChangePasswordForm(user.getId()));
         return "user-form/user-view";
     }
 
@@ -77,6 +79,7 @@ public class UserController {
             model.addAttribute("userForm", user);
             model.addAttribute("formTab", "active");
             model.addAttribute("editMode", "true");
+            model.addAttribute("passwordForm",new ChangePasswordForm(user.getId()));
         }else{
             try{
                 userService.updateUser(user);
@@ -88,6 +91,7 @@ public class UserController {
                 model.addAttribute("formTab", "active");
                 model.addAttribute("userList", userService.getAllUsers());
                 model.addAttribute("editMode", "true");
+                model.addAttribute("passwordForm",new ChangePasswordForm(user.getId()));
             }
         }
 
@@ -119,5 +123,24 @@ public class UserController {
         model.addAttribute("userList", userService.getAllUsers());
         model.addAttribute("roles", roleRepository.findAll());
         return "user-form/user-view";
+    }
+
+    @PostMapping("editUser/changePassword")
+    public ResponseEntity<String> postEditUserChangePassword(@Valid @RequestBody ChangePasswordForm form, Errors errors){
+
+        try{
+            //If error, just return a 400 bad request, along with the error message.
+           if(errors.hasErrors()){
+               String resultado = errors.getAllErrors()
+                       .stream().map(x -> x.getDefaultMessage())
+                       .collect(Collectors.joining(""));
+
+               throw new Exception(resultado);
+           }
+           userService.changePassword(form);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok("success");
     }
 }
