@@ -4,6 +4,10 @@ import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,6 +17,9 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public Iterable<User> getAllUsers() {
@@ -41,6 +48,10 @@ public class UserServiceImpl implements UserService{
     @Override
     public User createUser(User user) throws Exception {
         if (checkUsernameAvailable(user) && checkPasswordValid(user)){
+
+            String encodePassword = bCryptPasswordEncoder.encode(user.getPassword());
+            user.setPassword(encodePassword);
+
             user = userRepository.save(user);
         }
         return user;
@@ -53,6 +64,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public User updateUser(User fromUser) throws Exception {
         User toUser = getUserById(fromUser.getId());
         mapUser(fromUser, toUser);
@@ -67,6 +79,24 @@ public class UserServiceImpl implements UserService{
         userRepository.delete(user);
     }
 
+    public boolean isLoggedUserADMIN(){
+        return loggedUserHasRole("ROLE_ADMIN");
+    }
+
+    public boolean loggedUserHasRole(String role) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetails loggedUser = null;
+        Object roles = null;
+        if (principal instanceof UserDetails) {
+            loggedUser = (UserDetails) principal;
+
+            roles = loggedUser.getAuthorities().stream()
+                    .filter(x -> role.equals(x.getAuthority() ))
+                    .findFirst().orElse(null); //loggedUser = null;
+        }
+        return roles != null ?true :false;
+    }
+
     @Override
     public User changePassword(ChangePasswordForm form) throws Exception {
         User storedUser = userRepository
@@ -75,7 +105,7 @@ public class UserServiceImpl implements UserService{
                         +this.getClass().getName()));
 
 
-        if(!form.getCurrentPassword().equals(storedUser.getPassword())) {
+        if(!isLoggedUserADMIN() && form.getCurrentPassword().equals(storedUser.getPassword())) {
             throw new Exception("Contraseña actual incorrecta.");
         }
 
@@ -87,7 +117,8 @@ public class UserServiceImpl implements UserService{
             throw new Exception("La nueva contraseña y la contraseña actual no coinciden!");
         }
 
-        storedUser.setPassword(form.getNewPassword());
+        String encodePassword = bCryptPasswordEncoder.encode(form.getNewPassword());
+        storedUser.setPassword(encodePassword);
         return userRepository.save(storedUser);
     }
 
