@@ -1,5 +1,6 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.service;
 
+import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ public interface UserService {
 
      User updateUser(User user) throws Exception;
 
-     void deleteUser(Long id) throws Exception;
+     void deleteUser(Long id) throws UsernameOrIdNotFound;
 
      User changePassword(ChangePasswordForm form) throws Exception;
 }

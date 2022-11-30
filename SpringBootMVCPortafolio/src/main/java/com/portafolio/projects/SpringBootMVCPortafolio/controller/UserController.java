@@ -1,6 +1,7 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.controller;
 
 import ch.qos.logback.core.encoder.EchoEncoder;
+import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.RoleRepository;
@@ -67,8 +68,8 @@ public class UserController {
     public String deleteUser(Model model, @PathVariable(name = "id")Long id){
         try{
             userService.deleteUser(id);
-        }catch(Exception e){
-            model.addAttribute("listErrorMessage", e.getMessage());
+        }catch(UsernameOrIdNotFound uoin){
+            model.addAttribute("listErrorMessage", uoin.getMessage());
         }
         return getUserForm(model);
     }

@@ -1,5 +1,6 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.service;
 
+import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.UserRepository;
@@ -58,9 +59,8 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public User getUserById(Long id) throws Exception {
-        User user = userRepository.findById(id).orElseThrow(() -> new Exception("El usuario no existe."));
-        return user;
+    public User getUserById(Long id) throws UsernameOrIdNotFound {
+        return userRepository.findById(id).orElseThrow(() -> new UsernameOrIdNotFound("El Ide del usuario no existe."));
     }
 
     @Override
@@ -72,9 +72,15 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void deleteUser(Long id) throws Exception {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new Exception("Usuario no encontrado -"+this.getClass().getName()));
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public void deleteUser(Long id) throws UsernameOrIdNotFound {
+        User user = null;
+        try {
+            user = userRepository.findById(id)
+                    .orElseThrow(() -> new Exception("Usuario no encontrado -"+this.getClass().getName()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         userRepository.delete(user);
     }
