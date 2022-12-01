@@ -1,12 +1,11 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.controller;
 
-import ch.qos.logback.core.encoder.EchoEncoder;
+import com.portafolio.projects.SpringBootMVCPortafolio.Exception.CustomFieldValidationException;
 import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.RoleRepository;
 import com.portafolio.projects.SpringBootMVCPortafolio.service.UserService;
-import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -102,7 +101,7 @@ public class UserController {
     }
 
     @PostMapping("/userForm")
-    public String postUserForm(@Valid @ModelAttribute("userForm")User user, BindingResult result, ModelMap model){
+    public String createUser(@Valid @ModelAttribute("userForm")User user, BindingResult result, ModelMap model){
         if(result.hasErrors()){
             model.addAttribute("userForm", user);
             model.addAttribute("formTab", "active");
@@ -112,6 +111,12 @@ public class UserController {
                 userService.createUser(user);
                 model.addAttribute("userForm", new User());
                 model.addAttribute("listTab", "active");
+            }catch(CustomFieldValidationException cfve){
+                    result.rejectValue(cfve.getFieldName(), null, cfve.getMessage());
+                    model.addAttribute("userForm", user);
+                    model.addAttribute("formTab","active");
+                    model.addAttribute("userList", userService.getAllUsers());
+                    model.addAttribute("roles",roleRepository.findAll());
             }
             catch(Exception e){
                 model.addAttribute("formErrorMessage", e.getMessage());

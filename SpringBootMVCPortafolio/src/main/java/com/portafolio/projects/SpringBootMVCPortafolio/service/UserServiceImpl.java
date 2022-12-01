@@ -1,5 +1,6 @@
 package com.portafolio.projects.SpringBootMVCPortafolio.service;
 
+import com.portafolio.projects.SpringBootMVCPortafolio.Exception.CustomFieldValidationException;
 import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
@@ -30,18 +31,18 @@ public class UserServiceImpl implements UserService{
     private boolean checkUsernameAvailable(User user) throws Exception{
         Optional<User> userFound = userRepository.findByUsername(user.getUsername());
         if (userFound.isPresent()){
-            throw new Exception("Nombre de usuario no disponible.");
+            throw new CustomFieldValidationException("Nombre de usuario no disponible.","username");
         }
         return true;
     }
 
     private boolean checkPasswordValid(User user) throws Exception {
         if (user.getConfirmPassword() == null || user.getConfirmPassword().isEmpty()){
-            throw new Exception("Confirmar contraseña es obligatorio");
+            throw new CustomFieldValidationException("Confirmar contraseña es obligatorio","confirmPassword");
         }
 
         if (!user.getPassword().equals(user.getConfirmPassword())){
-            throw new Exception("La contraseña escrita no es igual en ambos campos.");
+            throw new CustomFieldValidationException("La contraseña escrita no es igual en ambos campos.","password");
         }
         return true;
     }
@@ -101,6 +102,22 @@ public class UserServiceImpl implements UserService{
                     .findFirst().orElse(null); //loggedUser = null;
         }
         return roles != null ?true :false;
+    }
+
+    public User getLoggedUser() throws Exception {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        UserDetails loggedUser = null;
+
+        if (principal instanceof UserDetails){
+            loggedUser = (UserDetails) principal;
+        }
+
+        User myUser = userRepository
+                .findByUsername(loggedUser.getUsername()).orElseThrow(() -> new Exception("Problemas obteniendo el usuario de esta sección."));
+
+        return myUser;
     }
 
     @Override
