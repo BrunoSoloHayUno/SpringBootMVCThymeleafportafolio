@@ -3,6 +3,7 @@ package com.portafolio.projects.SpringBootMVCPortafolio.controller;
 import com.portafolio.projects.SpringBootMVCPortafolio.Exception.CustomFieldValidationException;
 import com.portafolio.projects.SpringBootMVCPortafolio.Exception.UsernameOrIdNotFound;
 import com.portafolio.projects.SpringBootMVCPortafolio.dto.ChangePasswordForm;
+import com.portafolio.projects.SpringBootMVCPortafolio.models.Role;
 import com.portafolio.projects.SpringBootMVCPortafolio.models.User;
 import com.portafolio.projects.SpringBootMVCPortafolio.repository.RoleRepository;
 import com.portafolio.projects.SpringBootMVCPortafolio.service.UserService;
@@ -16,6 +17,8 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
@@ -30,6 +33,18 @@ public class UserController {
     @GetMapping({"/","login"})
     public String index(){
         return "index";
+    }
+
+    @GetMapping("/signup")
+    public String signup(Model model){
+        Role userRole = roleRepository.findByName("USER");
+        List<Role> roles = Arrays.asList(userRole);
+
+        model.addAttribute("signup",true);
+        model.addAttribute("userForm", new User());
+        model.addAttribute("roles", roles);
+
+        return "user-form/user-signup";
     }
 
     @GetMapping("/userForm")
@@ -71,6 +86,33 @@ public class UserController {
             model.addAttribute("listErrorMessage", uoin.getMessage());
         }
         return getUserForm(model);
+    }
+
+    @PostMapping("/signup")
+    public String postUser(@Valid @ModelAttribute("userForm")User user, BindingResult result, Model model){
+        Role userRole = roleRepository.findByName("USER");
+        List<Role> roles = Arrays.asList(userRole);
+
+        model.addAttribute("signup",true);
+        model.addAttribute("userForm", user);
+        model.addAttribute("roles", roles);
+        if(result.hasErrors()){
+            return "user-form/user-signup";
+        }
+        else{
+            try {
+                userService.createUser(user);
+
+            }catch(CustomFieldValidationException cfve){
+                result.rejectValue(cfve.getFieldName(), null, cfve.getMessage());
+                return "user-form/user-signup";
+            }
+            catch(Exception e){
+                model.addAttribute("formErrorMessage", e.getMessage());
+                return "user-form/user-signup";
+            }
+        }
+        return "index";
     }
 
     @PostMapping("/editUser")
