@@ -13,6 +13,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Set;
+import javax.persistence.Id;
 
 @Entity
 @Getter @Setter
